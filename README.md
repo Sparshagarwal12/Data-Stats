@@ -4,4 +4,9 @@ This is a Revolutionary Android Application fully developed in Flutter. Their ar
 
 ## Features
 
-- [Remove Shadow]
+- Remove Shadow
+- Convert Image to Pdf
+- OCR
+- Add Watermark
+- Edge Detection
+- Image into GreyScale
