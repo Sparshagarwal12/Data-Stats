@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'ApiHit.dart';
 
+import 'dart:convert';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
@@ -58,21 +59,6 @@ class _Editor extends State<Editor> {
   }
 
   bool val = false;
-  Future uploadPic(BuildContext context, File _image) async {
-    String fileName = _image.path;
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    final String url = await firebaseStorageRef.getDownloadURL();
-
-    setState(() {
-      image.add(url);
-      val = false;
-    });
-  }
-
-
   SpeedDial buildSpeedDial() {
     return SpeedDial(
       animatedIcon: AnimatedIcons.menu_close,
@@ -85,22 +71,6 @@ class _Editor extends State<Editor> {
       curve: Curves.bounceIn,
       children: [
         SpeedDialChild(
-            child: Icon(Icons.share, color: Colors.white),
-            backgroundColor: Colors.blue,
-            onTap: () async {
-              Fluttertoast.showToast(
-                  msg: "Share", toastLength: Toast.LENGTH_SHORT);
-              var request =
-                  await HttpClient().getUrl(Uri.parse(image[0].toString()));
-              var response = await request.close();
-              Uint8List bytes =
-                  await consolidateHttpClientResponseBytes(response);
-              await Share.file('ESYS AMLOG', 'amlog.jpg', bytes, 'image/jpg');
-            },
-            label: 'Share',
-            labelStyle: TextStyle(fontWeight: FontWeight.w500),
-            labelBackgroundColor: Colors.blue),
-        SpeedDialChild(
           child: Icon(Icons.add_photo_alternate, color: Colors.white),
           backgroundColor: Colors.purple.shade300,
           onTap: () async {
@@ -108,7 +78,10 @@ class _Editor extends State<Editor> {
                 await ImagePicker.pickImage(source: ImageSource.gallery);
             setState(() {
               val = true;
-              uploadPic(context, galleryFile);
+              final bytes = File(galleryFile.path).readAsBytesSync();
+
+              String fileImage = base64Encode(bytes);
+              base2url(fileImage, context);
             });
           },
           label: 'Gallery',
@@ -131,9 +104,10 @@ class _Editor extends State<Editor> {
             setState(() {
               val = true;
               _imagePath = imagePath;
-              example = File(_imagePath);
+              final bytes = File(_imagePath).readAsBytesSync();
 
-              uploadPic(context, example);
+              String cameraImage = base64Encode(bytes);
+              base2url(cameraImage, context);
             });
           },
           label: 'Camera',
@@ -154,7 +128,6 @@ class _Editor extends State<Editor> {
         widget.edit = "no";
       });
     }
-    // image[widget.place] = widget.link;
     return Scaffold(
       appBar: AppBar(
         title: Text("DocScanner"),
@@ -174,23 +147,24 @@ class _Editor extends State<Editor> {
                             return AlertDialog(
                                 backgroundColor: Colors.transparent,
                                 elevation: 0,
-                                content:
-                                    Center(child: SpinKitSpinningCircle(color: Color(0xFF000000))));
+                                content: Center(
+                                    child: SpinKitSpinningCircle(
+                                        color: Color(0xFF000000))));
                           },
                         );
-                        pdf(image, context);
                       },
                       child: Icon(
                         Icons.picture_as_pdf,
                         size: 30,
                       )),
-                      SizedBox(width: 20,),
-                      GestureDetector(
+                  SizedBox(
+                    width: 20,
+                  ),
+                  GestureDetector(
                       onTap: () {
                         Fluttertoast.showToast(
                             msg: "Function not Called",
                             toastLength: Toast.LENGTH_SHORT);
-                        
                       },
                       child: Icon(
                         Icons.merge_type,
@@ -216,6 +190,7 @@ class _Editor extends State<Editor> {
                                   builder: (context) => PicEdit(
                                         picUrl: image[index],
                                         index: index,
+                                        merge: false,
                                       )));
                         },
                         child: Padding(

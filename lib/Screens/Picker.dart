@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+
 import 'package:image_cropper/image_cropper.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:internship/Screens/Features.dart';
+import 'package:internship/Screens/ApiHit.dart';
+
 import 'package:flutter/services.dart';
 import 'package:edge_detection/edge_detection.dart';
+
+import 'dart:convert';
 
 class Picker extends StatefulWidget {
   @override
@@ -15,25 +19,6 @@ class Picker extends StatefulWidget {
 }
 
 class _Picker extends State<Picker> {
-  String link;
-
-  Future uploadPic(BuildContext context, File _image) async {
-    String fileName = _image.path;
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    final String url = await firebaseStorageRef.getDownloadURL();
-    link = url.toString();
-    setState(() {
-      Navigator.pushAndRemoveUntil(
-          context,
-          CupertinoPageRoute(
-              builder: (context) => Editor(link: link, edit: "no", place: 0)),
-          (route) => false);
-    });
-  }
-
   String _imagePath = 'Unknown';
   @override
   void initState() {
@@ -41,8 +26,6 @@ class _Picker extends State<Picker> {
     // initPlatformState();
     val = false;
   }
-
-  File example;
 
   File galleryFile;
   File cameraFile;
@@ -58,21 +41,31 @@ class _Picker extends State<Picker> {
     });
     File croppedFile = await ImageCropper.cropImage(
       sourcePath: galleryFile.path,
-      maxWidth: 512,
-      maxHeight: 512,
     );
-    uploadPic(context, croppedFile);
+
+    final bytes = File(croppedFile.path).readAsBytesSync();
+
+    String fileImage = base64Encode(bytes);
+    base2url(fileImage, context);
   }
 
   void initPlatformState() async {
     String imagePath;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      imagePath = await EdgeDetection.detectEdge;
+    } on PlatformException {
+      imagePath = 'Failed to get cropped image path.';
+    }
+    if (!mounted) return;
 
     setState(() {
       val = true;
       _imagePath = imagePath;
-      example = File(_imagePath);
+      final bytes = File(_imagePath).readAsBytesSync();
 
-      uploadPic(context, example);
+      String cameraFile = base64Encode(bytes);
+      base2url(cameraFile, context);
     });
   }
 
