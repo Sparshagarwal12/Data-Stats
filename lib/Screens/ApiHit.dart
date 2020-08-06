@@ -3,11 +3,27 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart';
 import 'package:flutter/material.dart';
 import 'package:internship/Screens/picSelection.dart';
-import 'package:internship/Screens/video.dart';
 import 'dart:convert';
 import 'package:internship/pdfView.dart';
 
 import 'package:internship/Screens/Features.dart';
+
+void base2url(String link, BuildContext context) async {
+  String url = "https://cam-scanner.herokuapp.com/bs2url";
+  var body = {"BASE64": link};
+  Response r = await post(
+    Uri.parse(url),
+    headers: {"Content-Type": "application/json"},
+    body: json.encode(body),
+  );
+  print(r.body);
+  dynamic mod = json.decode(r.body);
+  Navigator.pushAndRemoveUntil(
+      context,
+      CupertinoPageRoute(
+          builder: (context) => Editor(link: mod["URL"], edit: "no", place: 0)),
+      (route) => false);
+}
 
 void removeShadow(String link, BuildContext context, int number) async {
   String name = "SADAD";
@@ -19,57 +35,73 @@ void removeShadow(String link, BuildContext context, int number) async {
     body: json.encode(body),
   );
   print(r.body);
-  // Navigator.push(
-  //     context, MaterialPageRoute(builder: (context) => Editor(link: r.body)));
+  dynamic mod = json.decode(r.body);
   Navigator.pushAndRemoveUntil(
       context,
       CupertinoPageRoute(
           builder: (context) => PicEdit(
-                picUrl: r.body,
+                picUrl: mod["URL"],
                 index: number,
+                merge: false,
               )),
       (route) => false);
 }
 
-void addTextTop(
-    String link, BuildContext context, String text,int number) async {
-  String url = 'https://dankcli-api.herokuapp.com/meme-gen';
-  var body = {"URL": link, "TOP": text, "BOTTOM": ""};
+void addTextTop(String link, BuildContext context, String top, String bot,
+    int number) async {
+  String url = 'https://cam-scanner.herokuapp.com/text_on_image';
+  var body = {"URL": link, "TOP": top, "BOTTOM": bot};
   Response r = await post(
     Uri.parse(url),
     headers: {"Content-Type": "application/json"},
     body: json.encode(body),
   );
-  print(r.body);
+  dynamic mod = json.decode(r.body);
   Navigator.pushAndRemoveUntil(
       context,
       CupertinoPageRoute(
-          builder: (context) => PicEdit(
-                picUrl: r.body,
-                index: number,
-              )),
+          builder: (context) =>
+              PicEdit(picUrl: mod["URL"], index: number, merge: false)),
       (route) => false);
 }
 
-void addTextBottom(
-    String link, BuildContext context, String text, int number) async {
-  String url = 'https://dankcli-api.herokuapp.com/meme-gen';
-
-  var body = {"URL": link, "TOP": "", "BOTTOM": text};
-
+void watermarkBot(
+    String link, BuildContext context, int number, String text) async {
+  String url = 'https://cam-scanner.herokuapp.com/watermark_at_bottom';
+  var body = {
+    "URL": link,
+    "Size": 33,
+    "Text": text,
+  };
   Response r = await post(
     Uri.parse(url),
     headers: {"Content-Type": "application/json"},
     body: json.encode(body),
   );
-  print(r.body);
+  dynamic mod = json.decode(r.body);
   Navigator.pushAndRemoveUntil(
       context,
       CupertinoPageRoute(
-          builder: (context) => PicEdit(
-                picUrl: r.body,
-                index: number,
-              )),
+          builder: (context) =>
+              PicEdit(picUrl: mod["URL"], index: number, merge: false)),
+      (route) => false);
+}
+
+void watermarkMid(
+    String link, BuildContext context, int number, String text) async {
+  String url = 'https://cam-scanner.herokuapp.com/watermark_in_middle';
+  var body = {"URL": link, "Text": text, "Font_Scale": 2};
+  Response r = await post(
+    Uri.parse(url),
+    headers: {"Content-Type": "application/json"},
+    body: json.encode(body),
+  );
+  dynamic mod = json.decode(r.body);
+  Navigator.pushAndRemoveUntil(
+      context,
+      CupertinoPageRoute(
+          builder: (context) =>
+              PicEdit(picUrl: mod["URL"], index: number, merge: false)),
       (route) => false);
 }
 
@@ -81,38 +113,22 @@ void addHead(String link, BuildContext context, String head, int number) async {
     headers: {"Content-Type": "application/json"},
     body: json.encode(body),
   );
-  print(head);
+  print(r.body);
+  dynamic mod = json.decode(r.body);
   Navigator.pushAndRemoveUntil(
       context,
       CupertinoPageRoute(
           builder: (context) => PicEdit(
-                picUrl: r.body,
+                picUrl: mod["URL"],
                 index: number,
+                merge: false,
               )),
       (route) => false);
 }
 
-void resize(String link, BuildContext context, String choice, int height,
-    int width) async {
-  String url = 'https://cam-scanner.herokuapp.com/resize';
-  var body = {"URL": link, "Choice": choice, "Height": height, "Width": width};
-  Response r = await post(
-    Uri.parse(url),
-    headers: {"Content-Type": "application/json"},
-    body: json.encode(body),
-  );
-  print(r.body);
-  // Navigator.push(
-  // context, MaterialPageRoute(builder: (context) => Editor(link: r.body)));
-  Navigator.pushAndRemoveUntil(
-      context,
-      CupertinoPageRoute(
-          builder: (context) => Editor(link: r.body, edit: "no", place: 0)),
-      (route) => false);
-}
-
-void pdf(List<String> link, BuildContext context) async {
-  String url = 'https://cam-scanner.herokuapp.com/PDF';
+void img2scan(
+    String link, BuildContext context, String head, int number) async {
+  String url = 'https://cam-scanner.herokuapp.com/img2scan';
   var body = {"URL": link};
   Response r = await post(
     Uri.parse(url),
@@ -120,13 +136,14 @@ void pdf(List<String> link, BuildContext context) async {
     body: json.encode(body),
   );
   print(r.body);
-  // Navigator.push(
-  // context, MaterialPageRoute(builder: (context) => Editor(link: r.body)));
+  dynamic mod = json.decode(r.body);
   Navigator.pushAndRemoveUntil(
       context,
       CupertinoPageRoute(
-          builder: (context) => PdfView(
-                url: r.body,
+          builder: (context) => PicEdit(
+                picUrl: mod["URL"],
+                index: number,
+                merge: false,
               )),
       (route) => false);
 }

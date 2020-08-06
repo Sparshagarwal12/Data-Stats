@@ -28,6 +28,11 @@ dependencies:
   flutter_downloader:
   flutter_speed_dial:
   path_provider:
+  permission_handler: ^4.4.0+hotfix.2
+  downloads_path_provider_28:
+  flutter_local_notifications:
+  open_file:
+  dio:
   numberpicker:
   flutter_plugin_pdf_viewer:
   location_permissions:
@@ -42,6 +47,9 @@ dependencies:
   firebase_storage:
   fluttertoast:
   photo_view:
+  sliding_up_panel:
+  image_editor:
+  extended_image:
   image_cropper:
   http:
   flutter_spinkit:

@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:internship/Screens/Picker.dart';
-import 'package:internship/Screens/video.dart';
-import 'package:internship/download.dart';
-import 'package:internship/pdfView.dart';
 
 void main() {
   runApp(MyApp());
